@@ -19,7 +19,7 @@ echo "### Begin install istio control plane"
 echo "### "
 
 # Set vars for DIRs
-export ISTIO_VERSION=1.1.4
+export ISTIO_VERSION=1.4.6
 export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
 export ISTIO_DIR=$WORK_DIR/istio-$ISTIO_VERSION
 export BASE_DIR=${BASE_DIR:="${PWD}/.."}
@@ -51,7 +51,7 @@ kubectl --context gcp create secret generic cacerts -n istio-system \
 helm install ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system
 
 # wait until all 53 CRDs are installed
-until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 53 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
+until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 23 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
 
 # Confirm Istio CRDs ae installed
 echo "Istio CRDs installed" && kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l
