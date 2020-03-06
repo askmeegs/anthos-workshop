@@ -20,7 +20,7 @@ echo "### "
 
 
 # Set vars for DIRs
-export ISTIO_VERSION=1.4.6
+export ISTIO_VERSION=1.4.5
 export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
 export ISTIO_DIR=$WORK_DIR/istio-$ISTIO_VERSION
 export BASE_DIR=${BASE_DIR:="${PWD}/.."}
