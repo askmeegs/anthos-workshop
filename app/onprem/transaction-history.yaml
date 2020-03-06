@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,7 +54,6 @@ spec:
           value: "123456789"
         - name: PUB_KEY_PATH
           value: "/root/.ssh/publickey"
-          # tell Java to obey container memory limits
         - name: JVM_OPTS
           value: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
         resources:
@@ -64,18 +62,6 @@ spec:
             memory: 256Mi
           limits:
             cpu: 300m
-        # readinessProbe:
-        #   httpGet:
-        #     path: /ready
-        #     port: 8080
-        #   initialDelaySeconds: 5
-        #   periodSeconds: 5
-        # livenessProbe:
-        #   httpGet:
-        #     path: /healthy
-        #     port: 8080
-        #   initialDelaySeconds: 60
-        #   periodSeconds: 5
       volumes:
       - name: publickey
         secret:

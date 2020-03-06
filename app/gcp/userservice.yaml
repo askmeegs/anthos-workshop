@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,12 +54,6 @@ spec:
           value: "/root/.ssh/privatekey"
         - name: PUB_KEY_PATH
           value: "/root/.ssh/privatekey"
-        # readinessProbe:
-        #   httpGet:
-        #     path: /ready
-        #     port: 8080
-        #   initialDelaySeconds: 5
-        #   periodSeconds: 5
       volumes:
       - name: keys
         secret:
@@ -70,8 +63,6 @@ spec:
             path: privatekey
           - key: jwtRS256.key.pub
             path: publickey
-
-
 ---
 apiVersion: v1
 kind: Service

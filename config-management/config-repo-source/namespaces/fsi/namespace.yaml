@@ -4,3 +4,4 @@ metadata:
   name: fsi
   labels:
     env: istio
+    istio-injection: enabled
