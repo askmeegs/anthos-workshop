@@ -15,7 +15,7 @@
 # limitations under the License.
 
 echo "### "
-echo "### Begin install istio control plane"
+echo "### Begin install istio control plane - gcp"
 echo "### "
 
 # Set vars for DIRs
@@ -64,7 +64,18 @@ helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio -
 
 kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-central.yaml
 
-# Install Istio on onprem cluster
+kubectl label namespace default istio-injection=enabled
+
+# install the Stackdriver adapter
+git clone https://github.com/istio/installer && cd installer
+helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
+cd ..
+
+echo "### "
+echo "### Begin install istio control plane - onprem"
+echo "### "
+
+
 kubectx onprem
 # Create istio-system namespace
 kubectl create namespace istio-system
@@ -99,3 +110,11 @@ helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio -
 --set grafana.enabled=true >> ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-onprem.yaml
 
 kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-onprem.yaml
+
+kubectl label namespace default istio-injection=enabled
+
+# install the Stackdriver adapter
+cd installer
+helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
+cd ..
+rm -rf installer/
