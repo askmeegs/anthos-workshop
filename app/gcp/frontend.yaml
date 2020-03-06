@@ -1,0 +1,109 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: front
+        image: gcr.io/megandemo/fsi/frontend:v0.0.1
+        volumeMounts:
+        - name: publickey
+          mountPath: "/root/.ssh"
+          readOnly: true
+        env:
+        - name: VERSION
+          value: "0.1.0"
+        - name: PORT
+          value: "8080"
+        - name: TRANSACTIONS_API_ADDR
+          value: "ledgerwriter:8080"
+        - name: BALANCES_API_ADDR
+          value: "balancereader:8080"
+        - name: HISTORY_API_ADDR
+          value: "transactionhistory:8080"
+        - name: CONTACTS_API_ADDR
+          value: "contacts:8080"
+        - name: USERSERVICE_API_ADDR
+          value: "userservice:8080"
+        - name: LOCAL_ROUTING_NUM
+          value: "123456789"
+        - name: PUB_KEY_PATH
+          value: "/root/.ssh/publickey"
+        - name: DEFAULT_USERNAME
+          value: "testuser123"
+        - name: DEFAULT_PASSWORD
+          value: "password"
+      volumes:
+      - name: publickey
+        secret:
+          secretName: jwt-key
+          items:
+          - key: jwtRS256.key.pub
+            path: publickey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: frontend-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: frontend-ingress
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - frontend-gateway
+  http:
+  - route:
+    - destination:
+        host: frontend
+        port:
+          number: 80
