@@ -18,12 +18,14 @@ echo "### "
 echo "### Set up cross-cluster service discovery"
 echo "### "
 
+export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
+
 # get onprem kubeconfig --> apply to gcp
 
 kubectx onprem
 CLUSTER_NAME=$(kubectl config view --minify=true -o "jsonpath={.clusters[].name}")
 CLUSTER_NAME="${CLUSTER_NAME##*_}"
-export KUBECFG_FILE=${WORKDIR}/${CLUSTER_NAME}
+export KUBECFG_FILE=${WORK_DIR}/${CLUSTER_NAME}
 SERVER=$(kubectl config view --minify=true -o "jsonpath={.clusters[].cluster.server}")
 NAMESPACE=istio-system
 SERVICE_ACCOUNT=istio-reader-service-account
@@ -62,7 +64,7 @@ kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 kubectx gcp
 CLUSTER_NAME=$(kubectl config view --minify=true -o "jsonpath={.clusters[].name}")
 CLUSTER_NAME="${CLUSTER_NAME##*_}"
-export KUBECFG_FILE=${WORKDIR}/${CLUSTER_NAME}
+export KUBECFG_FILE=${WORK_DIR}/${CLUSTER_NAME}
 SERVER=$(kubectl config view --minify=true -o "jsonpath={.clusters[].cluster.server}")
 NAMESPACE=istio-system
 SERVICE_ACCOUNT=istio-reader-service-account

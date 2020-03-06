@@ -37,6 +37,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     kubectx onprem && ./config-management/install-config-operator.sh
 
     ./hybrid-multicluster/istio-install.sh
+    ./hybrid-multicluster/multi-discovery.sh
 
 else
     echo "This has only been tested in GCP Cloud Shell.  Only Linux (debian) is supported".
