@@ -30,8 +30,7 @@ echo "### "
 
 # GKE cluster with workload identity, needed for ASM beta
 gcloud beta container clusters create $CLUSTER --zone $ZONE \
-    --addons=HorizontalPodAutoscaling,HttpLoadBalancing,Istio,CloudRun \
-    --istio-config=auth=MTLS_PERMISSIVE \
+    --addons=HorizontalPodAutoscaling,HttpLoadBalancing,CloudRun \
     --username "admin" \
     --machine-type "n1-standard-4" \
     --image-type "COS" \
@@ -43,8 +42,7 @@ gcloud beta container clusters create $CLUSTER --zone $ZONE \
     --enable-ip-alias \
     --cluster-version=${CLUSTER_VERSION} \
     --enable-stackdriver-kubernetes \
-    --identity-namespace=${PROJECT_ID}.svc.id.goog \
-    --labels csm=
+    --identity-namespace=${PROJECT_ID}.svc.id.goog
 
 gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE}
 
