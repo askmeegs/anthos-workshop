@@ -30,7 +30,7 @@ echo "### "
 
 # GKE cluster with workload identity, needed for ASM beta
 gcloud beta container clusters create $CLUSTER --zone $ZONE \
-    --addons=HorizontalPodAutoscaling,HttpLoadBalancing,CloudRun \
+    --addons=HorizontalPodAutoscaling,HttpLoadBalancing \
     --username "admin" \
     --machine-type "n1-standard-4" \
     --image-type "COS" \
