@@ -64,8 +64,8 @@ helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio -
 
 kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-central.yaml
 
-# Install Istio on remote cluster
-kubectx remote
+# Install Istio on onprem cluster
+kubectx onprem
 # Create istio-system namespace
 kubectl create namespace istio-system
 kubectl create clusterrolebinding cluster-admin-binding \
@@ -73,7 +73,7 @@ kubectl create clusterrolebinding cluster-admin-binding \
     --user=$(gcloud config get-value core/account)
 
 # Create a secret with the sample certs for multicluster deployment
-kubectl --context remote create secret generic cacerts -n istio-system \
+kubectl --context onprem create secret generic cacerts -n istio-system \
 --from-file=${WORK_DIR}/istio-${ISTIO_VERSION}/samples/certs/ca-cert.pem \
 --from-file=${WORK_DIR}/istio-${ISTIO_VERSION}/samples/certs/ca-key.pem \
 --from-file=${WORK_DIR}/istio-${ISTIO_VERSION}/samples/certs/root-cert.pem \
@@ -96,6 +96,6 @@ helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio -
 --set kiali.enabled=true --set kiali.createDemoSecret=true \
 --set "kiali.dashboard.jaegerURL=http://jaeger-query:16686" \
 --set "kiali.dashboard.grafanaURL=http://grafana:3000" \
---set grafana.enabled=true >> ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-remote.yaml
+--set grafana.enabled=true >> ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-onprem.yaml
 
-kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-remote.yaml
+kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-onprem.yaml
