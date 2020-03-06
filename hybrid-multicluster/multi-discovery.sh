@@ -29,7 +29,7 @@ export KUBECFG_FILE=${WORK_DIR}/${CLUSTER_NAME}
 SERVER=$(kubectl config view --minify=true -o "jsonpath={.clusters[].cluster.server}")
 NAMESPACE=istio-system
 SERVICE_ACCOUNT=istio-reader-service-account
-kubectl create $SERVICE_ACCOUNT istio-reader-service-account -n $NAMESPACE
+kubectl create serviceaccount $SERVICE_ACCOUNT -n $NAMESPACE
 SECRET_NAME=$(kubectl get sa ${SERVICE_ACCOUNT} -n ${NAMESPACE} -o jsonpath='{.secrets[].name}')
 CA_DATA=$(kubectl get secret ${SECRET_NAME} -n ${NAMESPACE} -o "jsonpath={.data['ca\.crt']}")
 TOKEN=$(kubectl get secret ${SECRET_NAME} -n ${NAMESPACE} -o "jsonpath={.data['token']}" | base64 --decode)
@@ -60,7 +60,8 @@ kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${N
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
 
-# get gcp kubeconfig --> apply to onprem
+# get gcp kubeconfig --> apply to gcp
+
 kubectx gcp
 CLUSTER_NAME=$(kubectl config view --minify=true -o "jsonpath={.clusters[].name}")
 CLUSTER_NAME="${CLUSTER_NAME##*_}"
@@ -68,6 +69,7 @@ export KUBECFG_FILE=${WORK_DIR}/${CLUSTER_NAME}
 SERVER=$(kubectl config view --minify=true -o "jsonpath={.clusters[].cluster.server}")
 NAMESPACE=istio-system
 SERVICE_ACCOUNT=istio-reader-service-account
+kubectl create serviceaccount $SERVICE_ACCOUNT -n $NAMESPACE
 SECRET_NAME=$(kubectl get sa ${SERVICE_ACCOUNT} -n ${NAMESPACE} -o jsonpath='{.secrets[].name}')
 CA_DATA=$(kubectl get secret ${SECRET_NAME} -n ${NAMESPACE} -o "jsonpath={.data['ca\.crt']}")
 TOKEN=$(kubectl get secret ${SECRET_NAME} -n ${NAMESPACE} -o "jsonpath={.data['token']}" | base64 --decode)
@@ -96,4 +98,3 @@ EOF
 kubectx onprem
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
-
