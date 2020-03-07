@@ -22,7 +22,7 @@ spec:
   selector:
     app: ledger-db
   ports:
-  - name: tcp
+  - name: redis
     port: 6379
     targetPort: 6379
 ---

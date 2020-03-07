@@ -5,11 +5,11 @@ metadata:
   namespace: fsi
 spec:
   addresses:
-  - 240.0.0.5
+  - 240.0.0.2
   endpoints:
   - address: GWIP_ONPREM
     ports:
-      http: 8080
+      http1: 15443 # Do not change this port value
   hosts:
   - balancereader.fsi.global
   location: MESH_INTERNAL
@@ -26,11 +26,11 @@ metadata:
   namespace: fsi
 spec:
   addresses:
-  - 240.0.0.6
+  - 240.0.0.3
   endpoints:
   - address: GWIP_ONPREM
     ports:
-      http: 8080
+      http1: 15443 # Do not change this port value
   hosts:
   - ledgerwriter.fsi.global
   location: MESH_INTERNAL
@@ -47,11 +47,11 @@ metadata:
   namespace: fsi
 spec:
   addresses:
-  - 240.0.0.7
+  - 240.0.0.4
   endpoints:
   - address: GWIP_ONPREM
     ports:
-      http: 8080
+      http1: 15443 # Do not change this port value
   hosts:
   - transactionhistory.fsi.global
   location: MESH_INTERNAL
@@ -68,16 +68,16 @@ metadata:
   namespace: fsi
 spec:
   addresses:
-  - 240.0.0.8
+  - 240.0.0.5
   endpoints:
   - address: GWIP_ONPREM
     ports:
-      http: 8080
+      http1: 15443 # Do not change this port value
   hosts:
   - ledger-db.fsi.global
   location: MESH_INTERNAL
   ports:
-  - name: http
-    number: 8080
-    protocol: http
+  - name: redis
+    number: 6379
+    protocol: redis
   resolution: DNS
