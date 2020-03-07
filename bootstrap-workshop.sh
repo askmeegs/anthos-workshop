@@ -36,11 +36,11 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     kubectx gcp && ./config-management/install-config-operator.sh
     kubectx onprem && ./config-management/install-config-operator.sh
 
-    CONTEXT="gcp" ./hybrid-multicluster/istio-install.sh
-    CONTEXT="onprem" ./hybrid-multicluster/istio-install.sh
+    CONTEXT="gcp" ./istio/istio-install.sh
+    CONTEXT="onprem" ./istio/istio-install.sh
 
     # connect the clusters into 1 service mesh
-    ./hybrid-multicluster/multi-discovery.sh
+    ./istio/multi-discovery.sh
 
     # install GKE connect on the simulated onprem cluster
     ./kops-gce/connect-hub.sh
