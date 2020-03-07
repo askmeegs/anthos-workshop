@@ -39,8 +39,8 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     CONTEXT="gcp" ./istio/istio-install.sh
     CONTEXT="onprem" ./istio/istio-install.sh
 
-    # connect the clusters into 1 service mesh
-    ./istio/multi-discovery.sh
+    # set up cross-cluster Istio DNS
+    ./istio/coredns.sh
 
     # install GKE connect on the simulated onprem cluster
     ./kops-gce/connect-hub.sh
