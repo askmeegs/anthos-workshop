@@ -42,6 +42,9 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     # connect the clusters into 1 service mesh
     ./hybrid-multicluster/multi-discovery.sh
 
+    # install GKE connect on the simulated onprem cluster
+    ./kops-gce/connect-hub.sh
+
 else
     echo "This has only been tested in GCP Cloud Shell.  Only Linux (debian) is supported".
 fi
