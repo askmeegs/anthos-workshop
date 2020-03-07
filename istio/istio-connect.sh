@@ -44,9 +44,9 @@ kubectl port-forward $PROM_POD_1 $PROM_PORT_1:9090 -n istio-system --context gcp
 echo "Prometheus Port opened on $PROM_PORT_1 for central"
 
 kubectl port-forward $PROM_POD_2 $PROM_PORT_2:9090 -n istio-system --context onprem >> /dev/null &
-echo "Prometheus Port opened on $PROM_PORT_2 for remote"
+echo "Prometheus Port opened on $PROM_PORT_2 for onprem"
 
-# Expose GRAFANA POD on Port 3000 (central) and 3001 (remote)
+# Expose GRAFANA POD on Port 3000 (central) and 3001 (onprem)
 GRAFANA_PORT_1=3000
 GRAFANA_PORT_2=3001
 GRAFANA_POD_1=$(kubectl get po --namespace istio-system -l "app=grafana" \
@@ -72,9 +72,9 @@ kubectl port-forward $GRAFANA_POD_1 $GRAFANA_PORT_1:3000 -n istio-system --conte
 echo "Grafana Port opened on $GRAFANA_PORT_1 for central"
 
 kubectl port-forward $GRAFANA_POD_2 $GRAFANA_PORT_2:3000 -n istio-system --context onprem >> /dev/null &
-echo "Grafana Port opened on $GRAFANA_PORT_2 for remote"
+echo "Grafana Port opened on $GRAFANA_PORT_2 for onprem"
 
-# Expose KIALI POD on Port 20001 (central) and 20002 (remote)
+# Expose KIALI POD on Port 20001 (central) and 20002 (onprem)
 KIALI_PORT_1=20001
 KIALI_PORT_2=20002
 KIALI_POD_1=$(kubectl get po --namespace istio-system -l "app=kiali" \
@@ -100,7 +100,7 @@ kubectl port-forward $KIALI_POD_1 $KIALI_PORT_1:20001 -n istio-system --context 
 echo "Kiali Port opened on $KIALI_PORT_1 for central"
 
 kubectl port-forward $KIALI_POD_2 $KIALI_PORT_2:20001 -n istio-system --context onprem >> /dev/null &
-echo "Kiali Port opened on $KIALI_PORT_2 for remote"
+echo "Kiali Port opened on $KIALI_PORT_2 for onprem"
 
 
 
