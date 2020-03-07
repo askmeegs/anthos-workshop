@@ -63,8 +63,6 @@ kops create cluster \
 	--node-size=$NODE_SIZE \
 	--admin-access=$INSTANCE_CIDR \
 	--yes
-    # --master-size $MASTER_SIZE --master-count 3
-
 
 KUBECONFIG= kubectl config view --minify --flatten --context=$REMOTE_CLUSTER_NAME > $REMOTE_KUBECONFIG
 
