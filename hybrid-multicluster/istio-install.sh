@@ -47,7 +47,7 @@ kubectl --context ${CONTEXT} create secret generic cacerts -n istio-system \
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
 
 # wait until all CRDs are installed
-until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 24 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
+until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 23 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
 
 # Confirm Istio CRDs ae installed
 echo "Istio CRDs installed" && kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l
