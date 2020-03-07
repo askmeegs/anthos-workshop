@@ -42,6 +42,8 @@ spec:
           value: "ledgerwriter.fsi.global:8080"
         - name: BALANCES_API_ADDR
           value: "balancereader.fsi.global:8080"
+        - name: CONTACTS_API_ADDR
+          value: "contacts:8080"
         - name: HISTORY_API_ADDR
           value: "transactionhistory.fsi.global:8080"
         - name: USERSERVICE_API_ADDR
