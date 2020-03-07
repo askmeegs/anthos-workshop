@@ -105,6 +105,6 @@ spec:
   http:
   - route:
     - destination:
-        host: frontend
+        host: frontend.fsi.svc.cluster.local
         port:
           number: 80
