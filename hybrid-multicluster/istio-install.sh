@@ -20,7 +20,7 @@ echo "### "
 
 
 # Set vars for DIRs
-export ISTIO_VERSION=1.4.5
+export ISTIO_VERSION=1.4.6
 export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
 export ISTIO_DIR=$WORK_DIR/istio-$ISTIO_VERSION
 export BASE_DIR=${BASE_DIR:="${PWD}/.."}
@@ -47,14 +47,15 @@ kubectl --context ${CONTEXT} create secret generic cacerts -n istio-system \
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
 
 # wait until all CRDs are installed
-until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 24 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
+until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) = 23 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
 
 # Confirm Istio CRDs ae installed
 echo "Istio CRDs installed" && kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l
 
 # Install Istio
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio --name istio --namespace istio-system \
---values ${ISTIO_CONFIG_DIR}/istio-multicluster/values-istio-multicluster-gateways.yaml \
+--values ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio/example-values/values-istio-multicluster-gateways.yaml \
+--set global.proxy.accessLogFile="/dev/stdout" \
 --set prometheus.enabled=true \
 --set tracing.enabled=true \
 --set kiali.enabled=true --set kiali.createDemoSecret=true \
