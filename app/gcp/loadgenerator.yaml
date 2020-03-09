@@ -16,6 +16,8 @@ kind: Deployment
 metadata:
   name: loadgenerator
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:

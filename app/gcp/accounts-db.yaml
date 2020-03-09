@@ -16,6 +16,8 @@ apiVersion: apps/v1
 metadata:
   name: accounts-db
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
   labels:
     app: accounts-db
     tier: db
@@ -42,6 +44,8 @@ kind: Service
 metadata:
   name: accounts-db
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
   labels:
     app: accounts-db
     tier: db

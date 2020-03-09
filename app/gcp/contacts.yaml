@@ -16,6 +16,8 @@ kind: Deployment
 metadata:
   name: contacts
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:
@@ -75,6 +77,8 @@ kind: Service
 metadata:
   name: contacts
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   type: ClusterIP
   selector:

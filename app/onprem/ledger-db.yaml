@@ -16,6 +16,8 @@ kind: Deployment
 metadata:
   name: ledger-db
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: onprem
 spec:
   selector:
     matchLabels:
@@ -60,6 +62,8 @@ kind: Service
 metadata:
   name: ledger-db
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: onprem
 spec:
   type: ClusterIP
   selector:

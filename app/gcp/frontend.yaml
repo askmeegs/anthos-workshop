@@ -16,6 +16,8 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:
@@ -69,6 +71,8 @@ kind: Service
 metadata:
   name: frontend
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   type: ClusterIP
   selector:
@@ -82,6 +86,8 @@ apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: frontend-gateway
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     istio: ingressgateway # use Istio default gateway implementation
@@ -97,6 +103,8 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: frontend-ingress
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   hosts:
   - "*"

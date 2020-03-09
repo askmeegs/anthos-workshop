@@ -1,8 +1,17 @@
 kind: ClusterSelector
 apiVersion: configmanagement.gke.io/v1
 metadata:
-  name: istio
+  name: gcp
 spec:
   selector:
     matchLabels:
-      environment: istio
+      environment: gcp
+---
+kind: ClusterSelector
+apiVersion: configmanagement.gke.io/v1
+metadata:
+  name: onprem
+spec:
+  selector:
+    matchLabels:
+      environment: onprem

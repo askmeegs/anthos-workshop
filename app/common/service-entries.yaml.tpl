@@ -3,6 +3,8 @@ kind: ServiceEntry
 metadata:
   name: balancereader
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   hosts:
   - balancereader.fsi.global
@@ -24,6 +26,8 @@ kind: ServiceEntry
 metadata:
   name: ledgerwriter
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   hosts:
   - ledgerwriter.fsi.global
@@ -45,6 +49,8 @@ kind: ServiceEntry
 metadata:
   name: transactionhistory
   namespace: fsi
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   hosts:
   - transactionhistory.fsi.global

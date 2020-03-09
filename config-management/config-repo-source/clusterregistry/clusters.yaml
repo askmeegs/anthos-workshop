@@ -3,11 +3,11 @@ apiVersion: clusterregistry.k8s.io/v1alpha1
 metadata:
   name: gcp
   labels:
-    environment: istio
+    environment: gcp
 ---
 kind: Cluster
 apiVersion: clusterregistry.k8s.io/v1alpha1
 metadata:
   name: onprem
   labels:
-    environment: istio
+    environment: onprem
