@@ -33,6 +33,8 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     ./kops-gce/provision-remote-gce.sh &> ${WORK_DIR}/provision-remote.log &
     wait
 
+    ./common/connect-kops-remote.sh
+
     kubectx gcp && ./config-management/install-config-operator.sh
     kubectx onprem && ./config-management/install-config-operator.sh
 
