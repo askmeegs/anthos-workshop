@@ -3,3 +3,5 @@ workdir/
 cloud-run/cloud-run/src/go.sum
 cloud-run/cloud-run/src/main
 .DS_Store
+.key
+.pub
