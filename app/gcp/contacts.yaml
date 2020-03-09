@@ -14,21 +14,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
-  namespace: fsi
+  name: contacts
 spec:
   selector:
     matchLabels:
-      app: frontend
+      app: contacts
   template:
     metadata:
       labels:
-        app: frontend
+        app: contacts
     spec:
       terminationGracePeriodSeconds: 5
+      initContainers:
+      - name: init-db-ready
+        image: mongo:4
+        command: ['/bin/sh', '-c']
+        args: ["until (mongo --host accounts-db:27017 >/dev/null) do echo 'Waiting for connection for 2 sec.'; sleep 2; done"]
       containers:
-      - name: front
-        image: gcr.io/megandemo/fsi/frontend:v0.0.1
+      - name: contacts
+        image: gcr.io/megandemo/fsi/contacts:v0.0.1
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"
@@ -38,24 +42,25 @@ spec:
           value: "0.1.0"
         - name: PORT
           value: "8080"
-        - name: TRANSACTIONS_API_ADDR
-          value: "ledgerwriter.fsi.global:8080"
-        - name: BALANCES_API_ADDR
-          value: "balancereader.fsi.global:8080"
-        - name: CONTACTS_API_ADDR
-          value: "contacts:8080"
-        - name: HISTORY_API_ADDR
-          value: "transactionhistory.fsi.global:8080"
-        - name: USERSERVICE_API_ADDR
-          value: "userservice:8080"
+        - name: ACCOUNTS_DB_ADDR
+          value: "accounts-db:27017"
         - name: LOCAL_ROUTING_NUM
           value: "123456789"
         - name: PUB_KEY_PATH
           value: "/root/.ssh/publickey"
-        - name: DEFAULT_USERNAME
-          value: "testuser123"
-        - name: DEFAULT_PASSWORD
-          value: "password"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 64Mi
+          limits:
+            cpu: 300m
+            memory: 128Mi
+        # readinessProbe:
+        #   httpGet:
+        #     path: /ready
+        #     port: 8080
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 5
       volumes:
       - name: publickey
         secret:
@@ -67,44 +72,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
-  namespace: fsi
+  name: contacts
 spec:
   type: ClusterIP
   selector:
-    app: frontend
+    app: contacts
   ports:
   - name: http
-    port: 80
+    port: 8080
     targetPort: 8080
----
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: frontend-gateway
-spec:
-  selector:
-    istio: ingressgateway # use Istio default gateway implementation
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: frontend-ingress
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - frontend-gateway
-  http:
-  - route:
-    - destination:
-        host: frontend.fsi.svc.cluster.local
-        port:
-          number: 80

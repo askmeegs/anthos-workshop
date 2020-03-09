@@ -63,3 +63,17 @@ spec:
             path: privatekey
           - key: jwtRS256.key.pub
             path: publickey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice
+  namespace: fsi
+spec:
+  type: ClusterIP
+  selector:
+    app: userservice
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
