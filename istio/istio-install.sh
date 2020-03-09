@@ -49,9 +49,6 @@ helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio-i
 # wait until all CRDs are installed
 until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) > 22 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
 
-# Confirm Istio CRDs ae installed
-echo "Istio CRDs installed" && kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l
-
 # Install Istio
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio --name istio --namespace istio-system \
 --values ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio/example-values/values-istio-multicluster-gateways.yaml \
@@ -68,7 +65,7 @@ kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-${CONTEXT}.yaml
 kubectl label namespace default istio-injection=enabled
 
 # install the Stackdriver adapter
-git clone https://github.com/istio/installer && cd installer
-helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
-cd ..
-rm -rf installer/
+# git clone https://github.com/istio/installer && cd installer
+# helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
+# cd ..
+# rm -rf installer/
