@@ -41,13 +41,13 @@ spec:
         - name: PORT
           value: "8080"
         - name: TRANSACTIONS_API_ADDR
-          value: "ledgerwriter:8080"
+          value: "ledgerwriter.fsi.global:8080"
         - name: BALANCES_API_ADDR
-          value: "balancereader:8080"
+          value: "balancereader.fsi.global:8080"
         - name: CONTACTS_API_ADDR
           value: "contacts:8080"
         - name: HISTORY_API_ADDR
-          value: "transactionhistory:8080"
+          value: "transactionhistory.fsi.global:8080"
         - name: USERSERVICE_API_ADDR
           value: "userservice:8080"
         - name: LOCAL_ROUTING_NUM
