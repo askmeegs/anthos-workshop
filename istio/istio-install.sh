@@ -47,7 +47,8 @@ kubectl --context ${CONTEXT} create secret generic cacerts -n istio-system \
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
 
 # wait until all CRDs are installed
-until [ $(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l) > 22 ]; do echo "Waiting for Istio CRDs to install..." && sleep 3; done
+echo "Waiting for CRDs to be installed"
+sleep 30  #TODO - add check
 
 # Install Istio
 helm template ${WORK_DIR}/istio-${ISTIO_VERSION}/install/kubernetes/helm/istio --name istio --namespace istio-system \
@@ -65,7 +66,7 @@ kubectl apply -f ${WORK_DIR}/istio-${ISTIO_VERSION}/istio-${CONTEXT}.yaml
 kubectl label namespace default istio-injection=enabled
 
 # install the Stackdriver adapter
-# git clone https://github.com/istio/installer && cd installer
-# helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
-# cd ..
-# rm -rf installer/
+git clone https://github.com/istio/installer && cd installer
+helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
+cd ..
+rm -rf installer/
