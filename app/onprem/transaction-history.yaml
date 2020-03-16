@@ -36,7 +36,8 @@ spec:
           - for i in {1..100}; do sleep 1; if redis-cli -h ledger-db -p 6379 ping; then exit 0; fi; done; exit 1
       containers:
       - name: history
-        image: gcr.io/megandemo/fsi/transactionhistory:v0.0.1
+        image: gcr.io/bank-of-anthos/transactionhistory
+        imagePullPolicy: Always
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"

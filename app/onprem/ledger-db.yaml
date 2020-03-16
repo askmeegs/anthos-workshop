@@ -29,7 +29,8 @@ spec:
     spec:
       containers:
       - name: redis
-        image: gcr.io/megandemo/fsi/ledger-db:v0.0.1
+        image: gcr.io/bank-of-anthos/ledger-db
+        imagePullPolicy: Always
         ports:
         - containerPort: 6379
         volumeMounts:

@@ -35,7 +35,8 @@ spec:
     spec:
       containers:
         - name: mongo
-          image: gcr.io/megandemo/fsi/accounts-db:v0.0.1
+          image: gcr.io/bank-of-anthos/accounts-db
+          imagePullPolicy: Always
           ports:
             - containerPort: 27017
 ---

@@ -30,7 +30,8 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: front
-        image: gcr.io/megandemo/fsi/frontend:v0.0.1
+        image: gcr.io/bank-of-anthos/frontend
+        imagePullPolicy: Always
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"
