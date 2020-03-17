@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,34 +17,35 @@
 # Variables
 export PROJECT=$(gcloud config get-value project)
 export PROJECT_ID=${PROJECT}
+export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} --format="value(projectNumber)")
 export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
+
 
 export CLUSTER="gcp"
 export CLUSTER_VERSION="1.14.10-gke.17"
 export ZONE="us-central1-b"
 export CLUSTER_KUBECONFIG=$WORK_DIR/central.context
+export IDNS=${PROJECT_ID}.svc.id.goog
+export MESH_ID="proj-${PROJECT_NUMBER}"
+
+gcloud config set compute/zone ${ZONE}
+
 
 echo "### "
 echo "### Begin Provision GKE"
 echo "### "
 
-# GKE cluster with workload identity, needed for ASM beta
+# GKE cluster with workload identity, needed for ASM
 gcloud beta container clusters create $CLUSTER --zone $ZONE \
-    --addons=HorizontalPodAutoscaling,HttpLoadBalancing \
-    --username "admin" \
-    --machine-type "n1-standard-4" \
-    --image-type "COS" \
-    --disk-size "100" \
-    --scopes "https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" \
-    --num-nodes "4" \
-    --enable-autoscaling --min-nodes 3 --max-nodes 6 \
-    --network "default" \
-    --enable-ip-alias \
+    --cluster-version=${CLUSTER_VERSION} \
+    --machine-type=n1-standard-4 \
+    --num-nodes=4 \
+    --identity-namespace=${IDNS} \
+    --enable-stackdriver-kubernetes \
+    --subnetwork=default \
+    --labels mesh_id=${MESH_ID} \
     --no-enable-autoupgrade \
     --no-enable-autorepair \
-    --cluster-version=${CLUSTER_VERSION} \
-    --enable-stackdriver-kubernetes \
-    --identity-namespace=${PROJECT_ID}.svc.id.goog
 
 gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE}
 
@@ -52,9 +53,6 @@ kubectx ${CLUSTER}=gke_${PROJECT}_${ZONE}_${CLUSTER}
 kubectx ${CLUSTER}
 
 KUBECONFIG= kubectl config view --minify --flatten --context=$CLUSTER > $CLUSTER_KUBECONFIG
-
-kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="$(gcloud config get-value core/account)"
-
 
 
 

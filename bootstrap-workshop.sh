@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,20 +29,34 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     ./common/install-tools.sh
     echo -e "\nMultiple tasks are running asynchronously to setup your environment.  It may appear frozen, but you can check the logs in $WORK_DIR for additional details in another terminal window."
 
+    # enable apis
+    gcloud services enable \
+    container.googleapis.com \
+    compute.googleapis.com \
+    stackdriver.googleapis.com \
+    meshca.googleapis.com \
+    meshtelemetry.googleapis.com \
+    meshconfig.googleapis.com \
+    iamcredentials.googleapis.com \
+    anthos.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    gkeconnect.googleapis.com \
+    gkehub.googleapis.com \
+    serviceusage.googleapis.com \
+    sourcerepo.googleapis.com
+
     ./gke/provision-gke.sh &> ${WORK_DIR}/provision-gke.log &
     ./kops-gce/provision-remote-gce.sh &> ${WORK_DIR}/provision-remote.log &
     wait
 
     ./common/connect-kops-remote.sh
 
+    # install single ctrl plane multicluster ASM (ctrl plane - gcp)
+    PROJECT_ID=${PROJECT} ./asm/asm-install.sh
+
+    # ACM pre-install
     kubectx gcp && ./config-management/install-config-operator.sh
     kubectx onprem && ./config-management/install-config-operator.sh
-
-    CONTEXT="gcp" ./istio/istio-install.sh
-    CONTEXT="onprem" ./istio/istio-install.sh
-
-    # set up cross-cluster Istio DNS
-    ./istio/coredns.sh
 
     # install GKE connect on the simulated onprem cluster
     ./kops-gce/connect-hub.sh
