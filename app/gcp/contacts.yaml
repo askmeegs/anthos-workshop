@@ -72,19 +72,3 @@ spec:
           items:
           - key: jwtRS256.key.pub
             path: publickey
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: contacts
-  namespace: fsi
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
-spec:
-  type: ClusterIP
-  selector:
-    app: contacts
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080

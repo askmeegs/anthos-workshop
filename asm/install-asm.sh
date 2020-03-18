@@ -144,6 +144,7 @@ users:
 EOF
 
 # switch to ctrl plane cluster / add that file as a secret called "onprem"
+kubectx $CTRL_CTX
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
