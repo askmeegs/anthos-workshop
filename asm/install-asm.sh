@@ -95,10 +95,7 @@ istioctl manifest apply \
 --set values.global.createRemoteSvcEndpoints=true \
 --set values.global.remotePilotCreateSvcEndpoint=true \
 --set values.global.remotePilotAddress=${PILOT_POD_IP} \
---set gateways.enabled=false \
---set values.global.trustDomain=${IDNS} \
---set values.global.sds.token.aud=${IDNS} \
---set values.global.meshID=${MESH_ID}
+--set gateways.enabled=false
 
 
 log "Waiting for ASM remote to be ready..."
