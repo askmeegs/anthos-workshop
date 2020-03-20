@@ -17,7 +17,7 @@ metadata:
   name: transactionhistory
   namespace: fsi
   annotations:
-    configmanagement.gke.io/cluster-selector: onprem
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:
