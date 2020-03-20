@@ -16,6 +16,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: transactionhistory
+  annotations:
+    configmanagement.gke.io/cluster-selector: onprem
 spec:
   selector:
     matchLabels:

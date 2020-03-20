@@ -16,6 +16,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: contacts
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:

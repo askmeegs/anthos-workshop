@@ -16,6 +16,8 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: accounts-db
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
   labels:
     app: accounts-db
     tier: db
