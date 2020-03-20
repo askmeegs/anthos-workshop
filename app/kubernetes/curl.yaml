@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-cli
+  name: curl
 spec:
   selector:
     matchLabels:
-      app: redis-cli
+      app: curl
   template:
     metadata:
       labels:
-        app: redis-cli
+        app: curl
     spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: main
-        image: redis:latest
+        image: curlimages/curl:latest
