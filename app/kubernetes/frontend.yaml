@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: fsi
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:
@@ -31,7 +29,6 @@ spec:
       containers:
       - name: front
         image: gcr.io/bank-of-anthos/frontend
-        imagePullPolicy: Always
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"
@@ -42,13 +39,13 @@ spec:
         - name: PORT
           value: "8080"
         - name: TRANSACTIONS_API_ADDR
-          value: "ledgerwriter.fsi.global:8080"
+          value: "ledgerwriter:8080"
         - name: BALANCES_API_ADDR
-          value: "balancereader.fsi.global:8080"
+          value: "balancereader:8080"
+        - name: HISTORY_API_ADDR
+          value: "transactionhistory:8080"
         - name: CONTACTS_API_ADDR
           value: "contacts:8080"
-        - name: HISTORY_API_ADDR
-          value: "transactionhistory.fsi.global:8080"
         - name: USERSERVICE_API_ADDR
           value: "userservice:8080"
         - name: LOCAL_ROUTING_NUM
@@ -59,6 +56,12 @@ spec:
           value: "testuser123"
         - name: DEFAULT_PASSWORD
           value: "password"
+        # readinessProbe:
+        #   httpGet:
+        #     path: /ready
+        #     port: 8080
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 5
       volumes:
       - name: publickey
         secret:
@@ -67,37 +70,15 @@ spec:
           - key: jwtRS256.key.pub
             path: publickey
 ---
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
+apiVersion: v1
+kind: Service
 metadata:
-  name: frontend-gateway
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
+  name: frontend
 spec:
+  type: ClusterIP
   selector:
-    istio: ingressgateway # use Istio default gateway implementation
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: frontend-ingress
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - frontend-gateway
-  http:
-  - route:
-    - destination:
-        host: frontend.fsi.svc.cluster.local
-        port:
-          number: 80
+    app: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080

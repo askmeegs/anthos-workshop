@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: balancereader
-  namespace: fsi
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
 spec:
   selector:
     matchLabels:
@@ -28,16 +26,15 @@ spec:
         app: balancereader
     spec:
       terminationGracePeriodSeconds: 5
-      initContainers:
-      - name: init-db-ready
-        image:  redis:alpine
-        command: ['/bin/sh', '-c']
-        args:
-          - for i in {1..100}; do sleep 1; if redis-cli -h ledger-db -p 6379 ping; then exit 0; fi; done; exit 1
+      # initContainers:
+      # - name: init-db-ready
+      #   image:  redis:alpine
+      #   command: ['/bin/sh', '-c']
+      #   args:
+      #     - for i in {1..100}; do sleep 1; if redis-cli -h ledger-db -p 6379 ping; then exit 0; fi; done; exit 1
       containers:
       - name: reader
         image: gcr.io/bank-of-anthos/balancereader
-        imagePullPolicy: Always
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"
@@ -85,3 +82,16 @@ spec:
           items:
           - key: jwtRS256.key.pub
             path: publickey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: balancereader
+spec:
+  type: ClusterIP
+  selector:
+    app: balancereader
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

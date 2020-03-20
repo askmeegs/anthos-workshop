@@ -11,33 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ledgerwriter
-  namespace: fsi
-  annotations:
-    configmanagement.gke.io/cluster-selector: gcp
+  name: contacts
 spec:
   selector:
     matchLabels:
-      app: ledgerwriter
+      app: contacts
   template:
     metadata:
       labels:
-        app: ledgerwriter
+        app: contacts
     spec:
       terminationGracePeriodSeconds: 5
-      initContainers:
-      - name: init-db-ready
-        image:  redis:alpine
-        command: ['/bin/sh', '-c']
-        args:
-          - for i in {1..100}; do sleep 1; if redis-cli -h ledger-db -p 6379 ping; then exit 0; fi; done; exit 1
+      # initContainers:
+      # - name: init-db-ready
+      #   image: mongo:4
+      #   command: ['/bin/sh', '-c']
+      #   args: ["until (mongo --host accounts-db:27017 >/dev/null) do echo 'Waiting for connection for 2 sec.'; sleep 2; done"]
       containers:
-      - name: writer
-        image: gcr.io/bank-of-anthos/ledgerwriter
-        imagePullPolicy: Always
+      - name: contacts
+        image: gcr.io/bank-of-anthos/contacts
         volumeMounts:
         - name: publickey
           mountPath: "/root/.ssh"
@@ -45,29 +41,27 @@ spec:
         env:
         - name: VERSION
           value: "0.1.0"
-        - name: LEDGER_ADDR
-          value: "ledger-db"
-        - name: LEDGER_PORT
-          value: "6379"
-        - name: LEDGER_STREAM
-          value: "ledger"
         - name: PORT
           value: "8080"
+        - name: ACCOUNTS_DB_ADDR
+          value: "accounts-db:27017"
         - name: LOCAL_ROUTING_NUM
           value: "123456789"
-        - name: BALANCES_API_ADDR
-          value: "balancereader:8080"
         - name: PUB_KEY_PATH
           value: "/root/.ssh/publickey"
-        - name: JVM_OPTS
-          value: "-Xms1G -Xmx1G"
         resources:
           requests:
             cpu: 200m
-            memory: 1Gi
+            memory: 64Mi
           limits:
             cpu: 300m
-            memory: 2Gi
+            memory: 128Mi
+        # readinessProbe:
+        #   httpGet:
+        #     path: /ready
+        #     port: 8080
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 5
       volumes:
       - name: publickey
         secret:
@@ -75,3 +69,16 @@ spec:
           items:
           - key: jwtRS256.key.pub
             path: publickey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: contacts
+spec:
+  type: ClusterIP
+  selector:
+    app: contacts
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

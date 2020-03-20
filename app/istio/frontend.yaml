@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: frontend-gateway
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: frontend-ingress
+  annotations:
+    configmanagement.gke.io/cluster-selector: gcp
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - frontend-gateway
+  http:
+  - route:
+    - destination:
+        host: frontend.fsi.svc.cluster.local
+        port:
+          number: 80
