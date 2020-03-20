@@ -83,7 +83,6 @@ sleep 20
 # Ensure you have cluster-admin on the remote cluster
 kubectl create clusterrolebinding user-cluster-admin --clusterrole cluster-admin --user $(gcloud config get-value account)
 
-
 # Context
 #kops export kubecfg remotectx
 kubectx $REMOTE_CLUSTER_NAME_BASE=$REMOTE_CLUSTER_NAME && kubectx $REMOTE_CLUSTER_NAME_BASE

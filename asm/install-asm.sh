@@ -33,22 +33,6 @@ echo "### "
 echo "### Begin install ASM control plane - ${CTRL_CTX}"
 echo "### "
 
-kubectx $CTRL_CTX
-gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
-
-
-echo "Initializing MeshConfig API..."
-curl --request POST \
-  --header "Authorization: Bearer $(gcloud auth print-access-token)" \
-  --data '' \
-  https://meshconfig.googleapis.com/v1alpha1/projects/${PROJECT_ID}:initialize
-
-gcloud container clusters get-credentials ${CTRL_CTX}
-
-kubectl create clusterrolebinding cluster-admin-binding \
-  --clusterrole=cluster-admin \
-  --user="$(gcloud config get-value core/account)"
-
 echo "Downloading the ASM release..."
 curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
 
@@ -65,7 +49,25 @@ cd istio-1.4.6-asm.0
 export PATH=$PWD/bin:$PATH
 
 
+kubectx $CTRL_CTX
+gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
+
+
+echo "Initializing the MeshConfig API..."
+curl --request POST \
+  --header "Authorization: Bearer $(gcloud auth print-access-token)" \
+  --data '' \
+  https://meshconfig.googleapis.com/v1alpha1/projects/${PROJECT_ID}:initialize
+
+gcloud container clusters get-credentials ${CTRL_CTX}
+
+kubectl create clusterrolebinding cluster-admin-binding \
+  --clusterrole=cluster-admin \
+  --user="$(gcloud config get-value core/account)"
+
+
 # Install ASM ctrl plane, Permissive mTLS
+echo "Installing the Istio control plane..."
 istioctl manifest apply --set profile=asm \
   --set values.global.trustDomain=${IDNS} \
   --set values.global.sds.token.aud=${IDNS} \
@@ -95,6 +97,7 @@ istioctl manifest apply \
 --set values.global.createRemoteSvcEndpoints=true \
 --set values.global.remotePilotCreateSvcEndpoint=true \
 --set values.global.remotePilotAddress=${PILOT_POD_IP} \
+--set values.sidecarInjectorWebhook.enabled=true \
 --set gateways.enabled=false
 
 
@@ -106,7 +109,7 @@ echo "### "
 echo "### Set up cross cluster discovery"
 echo "### "
 
-# source: https://istio.io/docs/setup/install/multicluster/shared-vpn/#kubeconfig
+# source: https://archive.istio.io/v1.4/docs/setup/install/multicluster/shared-vpn/#install-the-istio-remote
 # give the GCP cluster access to Onprem's K8s services
 
 # do all this on remote cluster
@@ -114,6 +117,7 @@ kubectx $REMOTE_CTX
 mkdir -p "$WORK_DIR/asm"
 CLUSTER_NAME=${REMOTE_CTX}
 export KUBECFG_FILE="${WORK_DIR}/asm/${CLUSTER_NAME}"
+
 SERVER=$(kubectl config view --minify=true -o jsonpath='{.clusters[].cluster.server}')
 NAMESPACE=istio-system
 SERVICE_ACCOUNT=istio-reader-service-account
