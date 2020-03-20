@@ -16,6 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ledger-db
+  namespace: db
   annotations:
     configmanagement.gke.io/cluster-selector: onprem
 spec:
