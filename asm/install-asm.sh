@@ -75,10 +75,10 @@ istioctl manifest apply --set profile=asm \
   --set values.global.meshID=${MESH_ID} \
   --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}"
 
-log "Waiting for ASM control plane to be ready..."
+echo "Waiting for ASM control plane to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
-log "Validating ASM install..."
+echo "Validating ASM install..."
 asmctl validate
 
 
@@ -97,11 +97,11 @@ istioctl manifest apply \
 --set values.global.createRemoteSvcEndpoints=true \
 --set values.global.remotePilotCreateSvcEndpoint=true \
 --set values.global.remotePilotAddress=${PILOT_POD_IP} \
---set values.sidecarInjectorWebhook.enabled=true \
---set gateways.enabled=false
+--set gateways.enabled=false \
+--set autoInjection.enabled=true
 
 
-log "Waiting for ASM remote to be ready..."
+echo "Waiting for ASM remote to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
 
@@ -113,6 +113,7 @@ echo "### "
 # give the GCP cluster access to Onprem's K8s services
 
 # do all this on remote cluster
+echo "Getting remote cluster credentials..."
 kubectx $REMOTE_CTX
 mkdir -p "$WORK_DIR/asm"
 CLUSTER_NAME=${REMOTE_CTX}
@@ -148,6 +149,7 @@ users:
 EOF
 
 # switch to ctrl plane cluster / add that file as a secret called "onprem"
+echo "Adding remote cluster info to gcp cluster..."
 kubectx $CTRL_CTX
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}

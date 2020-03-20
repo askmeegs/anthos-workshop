@@ -53,7 +53,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     ./common/connect-kops-remote.sh
 
     # install single ctrl plane multicluster ASM (ctrl plane - gcp)
-    PROJECT_ID=${PROJECT} ./asm/asm-install.sh
+    PROJECT_ID=${PROJECT} ./asm/install-asm.sh
 
     # ACM pre-install
     kubectx gcp && ./config-management/install-config-operator.sh
