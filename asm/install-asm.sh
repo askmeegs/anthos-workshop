@@ -183,3 +183,4 @@ kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${N
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
 echo "✅ ASM install complete."
+cd ..
