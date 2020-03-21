@@ -45,7 +45,7 @@ spec:
         - name: VERSION
           value: "0.1.0"
         - name: LEDGER_ADDR
-          value: "ledger-db"
+          value: "ledger-db.fsi.svc.cluster.local"
         - name: LEDGER_PORT
           value: "6379"
         - name: LEDGER_STREAM
