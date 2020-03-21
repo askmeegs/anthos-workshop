@@ -33,7 +33,32 @@ echo "### "
 echo "### Begin install ASM control plane - ${CTRL_CTX}"
 echo "### "
 
-echo "Downloading the ASM release..."
+
+echo "🔥 Creating firewall rule across cluster pods..."
+
+# Pod CIDRs  - allow "from"
+GCP_POD_CIDR=$(gcloud container clusters describe ${CTRL_CLUSTER_NAME} --zone ${CTRL_CLUSTER_ZONE} --format=json | jq -r '.clusterIpv4Cidr')
+
+kubectx $REMOTE_CTX
+CIDR=`kubectl cluster-info dump | grep -m 1 cluster-cidr`
+CIDR=`cut -d "=" -f2 <<< "$CIDR"`
+CIDR=`echo $CIDR | tr -d \"`
+ONPREM_POD_CIDR=`echo $CIDR | tr -d ','`
+
+ALL_CLUSTER_CIDRS=$GCP_POD_CIDR,$ONPREM_POD_CIDR
+
+# Instance VM Network tags - allow "to"
+ALL_CLUSTER_NETTAGS=$(gcloud compute instances list --format=json | jq -r '.[].tags.items[0]' | uniq | awk -vORS=, '{ print $1 }' | sed 's/,$/\n/')
+
+# allow direct traffic between pods in both gcp and onprem clusters
+gcloud compute firewall-rules create istio-multicluster-pods \
+    --allow=tcp,udp,icmp,esp,ah,sctp \
+    --direction=INGRESS \
+    --priority=900 \
+    --source-ranges="${ALL_CLUSTER_CIDRS}" \
+    --target-tags="${ALL_CLUSTER_NETTAGS}" --quiet
+
+echo "🌩 Downloading ASM release..."
 curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
 
 curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz.1.sig
@@ -53,7 +78,7 @@ kubectx $CTRL_CTX
 gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
 
 
-echo "Initializing the MeshConfig API..."
+echo "☎️ Initializing the MeshConfig API..."
 curl --request POST \
   --header "Authorization: Bearer $(gcloud auth print-access-token)" \
   --data '' \
@@ -67,18 +92,19 @@ kubectl create clusterrolebinding cluster-admin-binding \
 
 
 # Install ASM ctrl plane, Permissive mTLS
-echo "Installing the Istio control plane..."
+echo "⛵️ Installing the ASM control plane..."
 istioctl manifest apply --set profile=asm \
   --set values.global.trustDomain=${IDNS} \
   --set values.global.sds.token.aud=${IDNS} \
   --set values.nodeagent.env.GKE_CLUSTER_URL=https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${CTRL_CLUSTER_ZONE}/clusters/${CTRL_CLUSTER_NAME} \
   --set values.global.meshID=${MESH_ID} \
-  --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}"
+  --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}" \
+  --set values.global.proxy.accessLogFile="/dev/stdout"
 
-echo "Waiting for ASM control plane to be ready..."
+echo "⏱ Waiting for ASM control plane to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
-echo "Validating ASM install..."
+echo "🔎 Validating ASM install..."
 asmctl validate
 
 
@@ -91,6 +117,7 @@ export PILOT_POD_IP=$(kubectl -n istio-system get pod -l istio=pilot -o jsonpath
 
 kubectx $REMOTE_CTX
 
+echo "🏝 Installing ASM remote on onprem cluster..."
 istioctl manifest apply \
 --set profile=remote \
 --set values.global.controlPlaneSecurityEnabled=false \
@@ -98,10 +125,11 @@ istioctl manifest apply \
 --set values.global.remotePilotCreateSvcEndpoint=true \
 --set values.global.remotePilotAddress=${PILOT_POD_IP} \
 --set gateways.enabled=false \
---set autoInjection.enabled=true
+--set autoInjection.enabled=true \
+--set values.global.proxy.accessLogFile="/dev/stdout"
 
 
-echo "Waiting for ASM remote to be ready..."
+echo "⏱ Waiting for ASM remote to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
 
@@ -113,7 +141,7 @@ echo "### "
 # give the GCP cluster access to Onprem's K8s services
 
 # do all this on remote cluster
-echo "Getting remote cluster credentials..."
+echo "🔑 Getting remote cluster credentials..."
 kubectx $REMOTE_CTX
 mkdir -p "$WORK_DIR/asm"
 CLUSTER_NAME=${REMOTE_CTX}
@@ -149,8 +177,9 @@ users:
 EOF
 
 # switch to ctrl plane cluster / add that file as a secret called "onprem"
-echo "Adding remote cluster info to gcp cluster..."
+echo "🔒 Adding remote cluster info to gcp cluster..."
 kubectx $CTRL_CTX
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
+echo "✅ ASM install complete."
