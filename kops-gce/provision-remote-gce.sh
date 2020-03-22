@@ -61,10 +61,8 @@ kops create cluster \
 	--project=${PROJECT} \
 	--node-count=$NODE_COUNT \
 	--node-size=$NODE_SIZE \
-	--api-loadbalancer-type="public" \
-	--vpc="default" \
 	--yes
-	# --admin-access=$INSTANCE_CIDR \ # allow all access
+	--admin-access=$INSTANCE_CIDR
 
 KUBECONFIG= kubectl config view --minify --flatten --context=$REMOTE_CLUSTER_NAME > $REMOTE_KUBECONFIG
 
