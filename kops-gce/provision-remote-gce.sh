@@ -26,8 +26,6 @@ export REMOTE_KUBECONFIG=$WORK_DIR/${REMOTE_CLUSTER_NAME_BASE}.context
 export NODE_COUNT=4
 export NODE_SIZE=n1-standard-4
 export ZONES=us-central1-a
-export INSTANCE_IP=$(curl -s api.ipify.org)
-export INSTANCE_CIDR=$INSTANCE_IP/32
 
 echo "### "
 echo "### Begin provision remote cluster"
@@ -61,8 +59,8 @@ kops create cluster \
 	--project=${PROJECT} \
 	--node-count=$NODE_COUNT \
 	--node-size=$NODE_SIZE \
+	--api-loadbalancer-type="public" \
 	--yes
-	--admin-access=$INSTANCE_CIDR
 
 KUBECONFIG= kubectl config view --minify --flatten --context=$REMOTE_CLUSTER_NAME > $REMOTE_KUBECONFIG
 
