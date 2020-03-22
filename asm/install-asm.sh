@@ -37,12 +37,7 @@ echo "🔥 Creating firewall rule across cluster pods..."
 
 # Pod CIDRs  - allow "from"
 GCP_POD_CIDR=$(gcloud container clusters describe ${CTRL_CLUSTER_NAME} --zone ${CTRL_CLUSTER_ZONE} --format=json | jq -r '.clusterIpv4Cidr')
-
-kubectx $REMOTE_CTX
-CIDR=`kubectl cluster-info dump | grep -m 1 cluster-cidr`
-CIDR=`cut -d "=" -f2 <<< "$CIDR"`
-CIDR=`echo $CIDR | tr -d \"`
-ONPREM_POD_CIDR=`echo $CIDR | tr -d ','`
+ONPREM_POD_CIDR=$(gcloud container clusters describe ${REMOTE_CLUSTER_NAME} --zone ${REMOTE_CLUSTER_ZONE} --format=json | jq -r '.clusterIpv4Cidr')
 
 ALL_CLUSTER_CIDRS=$GCP_POD_CIDR,$ONPREM_POD_CIDR
 
