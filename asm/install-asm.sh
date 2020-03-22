@@ -57,6 +57,11 @@ gcloud compute firewall-rules create istio-multicluster-pods \
     --source-ranges="${ALL_CLUSTER_CIDRS}" \
     --target-tags="${ALL_CLUSTER_NETTAGS}" --quiet
 
+echo "🔥 Updating onprem firewall rule to support discovery from GCP ASM..."
+# update onprem firewall rule to allow traffic from all sources
+# (allows gcp pilot discovery--> onprem kube apiserver)
+gcloud compute firewall-rules update cidr-to-master-onprem-k8s-local --source-ranges="0.0.0.0/0"
+
 echo "🌩 Downloading ASM release..."
 curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
 
