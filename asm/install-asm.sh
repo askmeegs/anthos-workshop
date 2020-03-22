@@ -33,7 +33,6 @@ echo "### "
 echo "### Begin install ASM control plane - ${CTRL_CTX}"
 echo "### "
 
-
 echo "🔥 Creating firewall rule across cluster pods..."
 
 # Pod CIDRs  - allow "from"
@@ -58,79 +57,46 @@ gcloud compute firewall-rules create istio-multicluster-pods \
     --source-ranges="${ALL_CLUSTER_CIDRS}" \
     --target-tags="${ALL_CLUSTER_NETTAGS}" --quiet
 
-# echo "🌩 Downloading ASM release..."
-# curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
+echo "🌩 Downloading ASM release..."
+curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
 
-# curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz.1.sig
-# openssl dgst -verify - -signature istio-1.4.6-asm.0-linux.tar.gz.1.sig istio-1.4.6-asm.0-linux.tar.gz <<'EOF'
-# -----BEGIN PUBLIC KEY-----
-# MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWZrGCUaJJr1H8a36sG4UUoXvlXvZ
-# wQfk16sxprI2gOJ2vFFggdq3ixF2h4qNBt0kI7ciDhgpwS8t+/960IsIgw==
-# -----END PUBLIC KEY-----
-# EOF
+curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz.1.sig
+openssl dgst -verify - -signature istio-1.4.6-asm.0-linux.tar.gz.1.sig istio-1.4.6-asm.0-linux.tar.gz <<'EOF'
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWZrGCUaJJr1H8a36sG4UUoXvlXvZ
+wQfk16sxprI2gOJ2vFFggdq3ixF2h4qNBt0kI7ciDhgpwS8t+/960IsIgw==
+-----END PUBLIC KEY-----
+EOF
 
-# tar xzf istio-1.4.6-asm.0-linux.tar.gz
-# cd istio-1.4.6-asm.0
-# export PATH=$PWD/bin:$PATH
+tar xzf istio-1.4.6-asm.0-linux.tar.gz
+cd istio-1.4.6-asm.0
+export PATH=$PWD/bin:$PATH
+
+kubectx $CTRL_CTX
+gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
 
 
-# kubectx $CTRL_CTX
-# gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
+echo "☎️ Initializing the MeshConfig API..."
+curl --request POST \
+  --header "Authorization: Bearer $(gcloud auth print-access-token)" \
+  --data '' \
+  https://meshconfig.googleapis.com/v1alpha1/projects/${PROJECT_ID}:initialize
 
+gcloud container clusters get-credentials ${CTRL_CTX}
 
-# echo "☎️ Initializing the MeshConfig API..."
-# curl --request POST \
-#   --header "Authorization: Bearer $(gcloud auth print-access-token)" \
-#   --data '' \
-#   https://meshconfig.googleapis.com/v1alpha1/projects/${PROJECT_ID}:initialize
-
-# gcloud container clusters get-credentials ${CTRL_CTX}
-
-# ------------------
-# BEGIN ISTIO
-# -------------------
-
-# Download Istio
-ISTIO_VERSION="${ISTIO_VERSION:-1.4.6}"
-log "Downloading Istio ${ISTIO_VERSION}..."
-curl -L https://git.io/getLatestIstio | ISTIO_VERSION=$ISTIO_VERSION sh -
-
-# Am I ready for install?
-istioctl verify-install
-
-# Prepare for install
-kubectl create namespace istio-system
-
-kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole=cluster-admin \
-    --user=$(gcloud config get-value core/account)
-
-# Generate install manifest
-alias istioctl=${WORK_DIR}/istio-${ISTIO_VERSION}/bin/istioctl
-
-# Install ASM ctrl plane, Permissive mTLS
-echo "⛵️ Installing the Istio control plane..."
-istioctl manifest apply \
---set values.grafana.enabled=true \
---set values.kiali.enabled=true \
---set values.tracing.enabled=true \
---set values.kiali.enabled=true --set values.kiali.createDemoSecret=true \
---set values.global.proxy.accessLogFile="/dev/stdout"
-
-# ASM PROFILE
-# istioctl manifest apply --set profile=asm \
-#   --set values.global.trustDomain=${IDNS} \
-#   --set values.global.sds.token.aud=${IDNS} \
-#   --set values.nodeagent.env.GKE_CLUSTER_URL=https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${CTRL_CLUSTER_ZONE}/clusters/${CTRL_CLUSTER_NAME} \
-#   --set values.global.meshID=${MESH_ID} \
-#   --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}" \
-#   --set values.global.proxy.accessLogFile="/dev/stdout"
+istioctl manifest apply --set profile=asm \
+  --set values.global.trustDomain=${IDNS} \
+  --set values.global.sds.token.aud=${IDNS} \
+  --set values.nodeagent.env.GKE_CLUSTER_URL=https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${CTRL_CLUSTER_ZONE}/clusters/${CTRL_CLUSTER_NAME} \
+  --set values.global.meshID=${MESH_ID} \
+  --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}" \
+  --set values.global.proxy.accessLogFile="/dev/stdout"
 
 echo "⏱ Waiting for ASM control plane to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
 # echo "🔎 Validating ASM install..."
-# asmctl validate
+asmctl validate
 
 
 echo "### "
