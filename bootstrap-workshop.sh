@@ -61,6 +61,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
 
     # install GKE connect on the simulated onprem cluster
     ./kops-gce/connect-hub.sh
+    ./common/remote-create-fw.sh
 
 else
     echo "This has only been tested in GCP Cloud Shell.  Only Linux (debian) is supported".
