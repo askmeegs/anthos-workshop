@@ -22,7 +22,7 @@ gcloud compute firewall-rules create https-api-onprem-k8s-local \
     --source-ranges=${INSTANCE_CIDR} --target-tags="onprem-k8s-local-k8s-io-role-master" --allow tcp
 
 gcloud compute firewall-rules create ssh-external-to-master-onprem-k8s-local \
-    -source-ranges=${INSTANCE_CIDR} --target-tags="onprem-k8s-local-k8s-io-role-master" --allow tcp
+    --source-ranges=${INSTANCE_CIDR} --target-tags="onprem-k8s-local-k8s-io-role-master" --allow tcp
 
 gcloud compute firewall-rules create ssh-external-to-node-onprem-k8s-local \
-    -source-ranges=${INSTANCE_CIDR} --target-tags="onprem-k8s-local-k8s-io-role-node" --allow tcp
+    --source-ranges=${INSTANCE_CIDR} --target-tags="onprem-k8s-local-k8s-io-role-node" --allow tcp
