@@ -47,7 +47,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
 
     echo -e "\nMultiple tasks are running asynchronously to setup your environment.  It may appear frozen, but you can check the logs in $WORK_DIR for additional details in another terminal window."
     ./gke/provision-gke.sh &> ${WORK_DIR}/provision-gke.log &
-    ./kops-gce/provision-remote-gce.sh &> ${WORK_DIR}/provision-remote.log &
+    ./kops/provision-remote-gce.sh &> ${WORK_DIR}/provision-remote.log &
     wait
 
     ./common/connect-kops-remote.sh
@@ -56,12 +56,12 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     PROJECT_ID=${PROJECT} ./asm/install-asm.sh
 
     # ACM pre-install
-    kubectx gcp && ./config-management/install-config-operator.sh
-    kubectx onprem && ./config-management/install-config-operator.sh
+    kubectx gcp && ./acm/install-config-operator.sh
+    kubectx onprem && ./acm/install-config-operator.sh
 
     # install GKE connect on both clusters / print onprem login token
     ./gke/gke-connect.sh
-    ./kops-gce/connect-hub.sh
+    ./kops/connect-hub.sh
     ./common/remote-create-fw.sh
 
 else
