@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 # Variables
 
-if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then 
+if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     # if user is cleaning up from a refreshed shell, this needs to be done
     source ./env
 
@@ -38,7 +38,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     wait
 
     rm -rf $WORK_DIR
-    
+
     # Delete forwarding rule created by Istio ingress gateway on remote cluster
     gcloud compute forwarding-rules delete $(gcloud compute forwarding-rules list --format="value(name)") --region us-central1 --quiet
 
