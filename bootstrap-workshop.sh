@@ -59,7 +59,8 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     kubectx gcp && ./config-management/install-config-operator.sh
     kubectx onprem && ./config-management/install-config-operator.sh
 
-    # install GKE connect on the simulated onprem cluster
+    # install GKE connect on both clusters / print onprem login token
+    ./gke/gke-connect.sh
     ./kops-gce/connect-hub.sh
     ./common/remote-create-fw.sh
 
