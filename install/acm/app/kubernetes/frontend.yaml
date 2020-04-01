@@ -40,11 +40,11 @@ spec:
         - name: PORT
           value: "8080"
         - name: TRANSACTIONS_API_ADDR
-          value: "ledgerwriter.fsi.svc.cluster.local:8080"
+          value: "ledgerwriter.fsi.global:8080"
         - name: BALANCES_API_ADDR
-          value: "balancereader.fsi.svc.cluster.local:8080"
+          value: "balancereader.fsi.global:8080"
         - name: HISTORY_API_ADDR
-          value: "transactionhistory.fsi.svc.cluster.local:8080"
+          value: "transactionhistory.fsi.global:8080"
         - name: CONTACTS_API_ADDR
           value: "contacts.fsi.svc.cluster.local:8080"
         - name: USERSERVICE_API_ADDR
