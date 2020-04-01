@@ -60,7 +60,7 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
     ./istio/coredns.sh
 
     # do port forwarding for service mesh graph (kiali)
-    ./istio-istio-connect.sh
+    ./istio/istio-connect.sh
 
     # ACM pre-install
     kubectx gcp && ./acm/install-config-operator.sh
