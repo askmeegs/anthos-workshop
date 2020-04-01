@@ -22,11 +22,8 @@ export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
 
 
 export CLUSTER="gcp"
-export CLUSTER_VERSION="1.14.10-gke.17"
 export ZONE="us-central1-b"
 export CLUSTER_KUBECONFIG=$WORK_DIR/central.context
-export IDNS=${PROJECT_ID}.svc.id.goog
-export MESH_ID="proj-${PROJECT_NUMBER}"
 
 gcloud config set compute/zone ${ZONE}
 
@@ -37,13 +34,10 @@ echo "### "
 
 # GKE cluster with workload identity, needed for ASM
 gcloud beta container clusters create $CLUSTER --zone $ZONE \
-    --cluster-version=${CLUSTER_VERSION} \
     --machine-type=n1-standard-4 \
     --num-nodes=4 \
-    --identity-namespace=${IDNS} \
     --enable-stackdriver-kubernetes \
     --subnetwork=default \
-    --labels mesh_id=${MESH_ID} \
     --no-enable-autoupgrade \
     --no-enable-autorepair \
 
