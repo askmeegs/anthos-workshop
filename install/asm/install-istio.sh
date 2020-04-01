@@ -67,10 +67,8 @@ mv istio-$ISTIO_VERSION $WORK_DIR/
 cd $WORK_DIR/istio-$ISTIO_VERSION
 export PATH=$PWD/bin:$PATH
 
-
-
 echo "⛵️ Installing the Istio control plane on ${CTRL_CTX}..."
-
+kubectx $CTRL_CTX
 istioctl manifest apply \
 --set values.grafana.enabled=true \
 --set values.kiali.enabled=true \
