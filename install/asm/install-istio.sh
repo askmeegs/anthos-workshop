@@ -22,15 +22,13 @@ export CTRL_CLUSTER_NAME="gcp"
 export CTRL_CLUSTER_ZONE="us-central1-b"
 export REMOTE_CTX="onprem"
 export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} --format="value(projectNumber)")
-export IDNS=${PROJECT_ID}.svc.id.goog #ASM
-export MESH_ID="proj-${PROJECT_NUMBER}"
-export ASM_VERSION="1.4.6-asm.0"
+export ISTIO_VERSION="1.4.7"
 export WORK_DIR=${WORK_DIR:="${PWD}/workdir"}
 
 cd $WORK_DIR
 
 echo "### "
-echo "### Begin install ASM control plane - ${CTRL_CTX}"
+echo "### Begin install Istio control plane - ${CTRL_CTX}"
 echo "### "
 
 echo "🔥 Creating firewall rule across cluster pods..."
@@ -57,75 +55,61 @@ gcloud compute firewall-rules create istio-multicluster-pods \
     --source-ranges="${ALL_CLUSTER_CIDRS}" \
     --target-tags="${ALL_CLUSTER_NETTAGS}" --quiet
 
-echo "🔥 Updating onprem firewall rule to support discovery from GCP ASM..."
+echo "🔥 Updating onprem firewall rule to support discovery from GCP Istio..."
 # update onprem firewall rule to allow traffic from all sources
 # (allows gcp pilot discovery--> onprem kube apiserver)
 gcloud compute firewall-rules update cidr-to-master-onprem-k8s-local --source-ranges="0.0.0.0/0"
 
-echo "🌩 Downloading ASM release..."
-curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz
-
-curl -LO https://storage.googleapis.com/gke-release/asm/istio-1.4.6-asm.0-linux.tar.gz.1.sig
-openssl dgst -verify - -signature istio-1.4.6-asm.0-linux.tar.gz.1.sig istio-1.4.6-asm.0-linux.tar.gz <<'EOF'
------BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWZrGCUaJJr1H8a36sG4UUoXvlXvZ
-wQfk16sxprI2gOJ2vFFggdq3ixF2h4qNBt0kI7ciDhgpwS8t+/960IsIgw==
------END PUBLIC KEY-----
-EOF
-
-tar xzf istio-1.4.6-asm.0-linux.tar.gz
-cd istio-1.4.6-asm.0
+echo "🌩 Downloading Istio ${ISTIO_VERSION}..."
+curl -L https://git.io/getLatestIstio | ISTIO_VERSION=$ISTIO_VERSION sh -
+cp istio-$ISTIO_VERSION/bin/istioctl $WORK_DIR/bin/.
+mv istio-$ISTIO_VERSION $WORK_DIR/
+cd $WORK_DIR/istio-$ISTIO_VERSION
 export PATH=$PWD/bin:$PATH
 
-kubectx $CTRL_CTX
-gcloud config set compute/zone ${CTRL_CLUSTER_ZONE}
 
 
-echo "☎️ Initializing the MeshConfig API..."
-curl --request POST \
-  --header "Authorization: Bearer $(gcloud auth print-access-token)" \
-  --data '' \
-  https://meshconfig.googleapis.com/v1alpha1/projects/${PROJECT_ID}:initialize
+echo "⛵️ Installing the Istio control plane on ${CTRL_CTX}..."
 
-gcloud container clusters get-credentials ${CTRL_CTX}
+istioctl manifest apply \
+--set values.grafana.enabled=true \
+--set values.kiali.enabled=true \
+--set values.kiali.enabled=true --set values.kiali.createDemoSecret=true \
+--set values.global.proxy.accessLogFile="/dev/stdout"
 
-istioctl manifest apply --set profile=asm \
-  --set values.global.trustDomain=${IDNS} \
-  --set values.global.sds.token.aud=${IDNS} \
-  --set values.nodeagent.env.GKE_CLUSTER_URL=https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${CTRL_CLUSTER_ZONE}/clusters/${CTRL_CLUSTER_NAME} \
-  --set values.global.meshID=${MESH_ID} \
-  --set values.global.proxy.env.GCP_METADATA="${PROJECT_ID}|${PROJECT_NUMBER}|${CTRL_CLUSTER_NAME}|${CTRL_CLUSTER_ZONE}" \
-  --set values.global.proxy.accessLogFile="/dev/stdout"
-
-echo "⏱ Waiting for ASM control plane to be ready..."
+echo "⏱ Wait for Istio control plane to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
-# echo "🔎 Validating ASM install..."
-asmctl validate
+echo "📊 Install the Mixer Stackdriver Adapter"
+git clone https://github.com/istio/installer && cd installer
+helm template istio-telemetry/mixer-telemetry --execute=templates/stackdriver.yaml -f global.yaml --set mixer.adapters.stackdriver.enabled=true --namespace istio-system | kubectl apply -f -
 
 
 echo "### "
-echo "### Begin install ASM remote - ${REMOTE_CTX}"
+echo "### Begin installing the Istio remote - ${REMOTE_CTX}"
 echo "### "
 
 # still on the ctrl plane kubectx
 export PILOT_POD_IP=$(kubectl -n istio-system get pod -l istio=pilot -o jsonpath='{.items[0].status.podIP}')
+export TELEMETRY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=telemetry -o jsonpath='{.items[0].status.podIP}')
+
 
 kubectx $REMOTE_CTX
 
-echo "🏝 Installing ASM remote on onprem cluster..."
+echo "🏝 Installing Istio remote on ${REMOTE_CTX} cluster..."
 istioctl manifest apply \
 --set profile=remote \
 --set values.global.controlPlaneSecurityEnabled=false \
 --set values.global.createRemoteSvcEndpoints=true \
 --set values.global.remotePilotCreateSvcEndpoint=true \
 --set values.global.remotePilotAddress=${PILOT_POD_IP} \
+--set values.global.remoteTelemetryAddress=${TELEMETRY_POD_IP} \
 --set gateways.enabled=false \
 --set autoInjection.enabled=true \
 --set values.global.proxy.accessLogFile="/dev/stdout"
 
 
-echo "⏱ Waiting for ASM remote to be ready..."
+echo "⏱ Wait for Istio remote to be ready..."
 kubectl wait --for=condition=available --timeout=600s deployment --all -n istio-system
 
 
@@ -139,9 +123,9 @@ echo "### "
 # do all this on remote cluster
 echo "🔑 Getting remote cluster credentials..."
 kubectx $REMOTE_CTX
-mkdir -p "$WORK_DIR/asm"
+mkdir -p "$WORK_DIR/istio-secret"
 CLUSTER_NAME=${REMOTE_CTX}
-export KUBECFG_FILE="${WORK_DIR}/asm/${CLUSTER_NAME}"
+export KUBECFG_FILE="${WORK_DIR}/istio-secret/${CLUSTER_NAME}"
 
 SERVER=$(kubectl config view --minify=true -o jsonpath='{.clusters[].cluster.server}')
 NAMESPACE=istio-system
@@ -178,5 +162,5 @@ kubectx $CTRL_CTX
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
-echo "✅ ASM install complete."
+echo "✅ Istio install complete."
 cd ..
