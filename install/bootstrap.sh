@@ -52,17 +52,23 @@ if [[ $OSTYPE == "linux-gnu" && $CLOUD_SHELL == true ]]; then
 
     ./common/connect-kops-remote.sh
 
-    # install single ctrl plane multicluster istio (ctrl plane - gcp)
-    PROJECT_ID=${PROJECT} ./asm/install-istio.sh
+    # install service mesh: Istio, replicated control plane multicluster
+    CONTEXT="gcp" ./istio/istio-install.sh
+    CONTEXT="onprem" ./istio/istio-install.sh
+
+    # configure DNS stubdomains for cross-cluster service name resolution
+    ./istio/coredns.sh
+
+    # do port forwarding for service mesh graph (kiali)
+    ./istio-istio-connect.sh
 
     # ACM pre-install
     kubectx gcp && ./acm/install-config-operator.sh
     kubectx onprem && ./acm/install-config-operator.sh
 
     # install GKE connect on both clusters / print onprem login token
-    ./gke/gke-connect.sh
+    ./gke/connect-hub.sh
     ./kops/connect-hub.sh
-    ./common/remote-create-fw.sh
 
 else
     echo "This has only been tested in GCP Cloud Shell.  Only Linux (debian) is supported".
